@@ -36,7 +36,7 @@ server {
     ssl_certificate     /etc/nginx/ssl/{{ websiteproject }}.crt;
     ssl_certificate_key /etc/nginx/ssl/{{ websiteproject }}.key;
 
-    client_max_body_size 30m;
+    client_max_body_size {{ nginx_max_body_size }};
 
     # running in debug more for now. Uncomment these in order to serve the files
     # by NGINX
@@ -59,8 +59,9 @@ server {
     location / {
       uwsgi_pass uwsgi_{{ websiteproject }};
       include {{ django_deployment_root_folder }}/{{ url }}/uwsgi_params;
+      uwsgi_read_timeout {{ uwsgi_read_timeout }};
     }
-    
+
     # should restrict the access from an internal address?
     #location /admin {
     #  uwsgi_pass uwsgi_{{ websiteproject }};
