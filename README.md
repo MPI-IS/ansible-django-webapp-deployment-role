@@ -84,6 +84,7 @@ deployment script.|
 |uwsgi_user|`www-data` | the user running uWSGI|
 |uwsgi_group| `www-data` | the group of the user running uWSGI|
 |uwsgi_additional_options| `[]` | additional options passed to the uWSGI configuration file|
+|uwsgi_read_timeout| `60s` | timeout for reading a response from the uwsgi server|
 
 **NGinx**
 
@@ -92,6 +93,7 @@ deployment script.|
 |nginx_binary_name| `/usr/sbin/nginx` | name of the NGinx binary: used for testing the configuration when NGinx is used|
 |nginx_user  | `www-data` | user of the Nginx instance: this is used for the ACLs on the certificate file|
 |nginx_group | `www-data` | group of the NGinx daemon: this is used for the ACLs on the certificate file|
+|nginx_max_body_size | `30m` | client maximum body size: this is the maximum allowed size of the client request body|
 
 **Apache**
 

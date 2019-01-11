@@ -42,10 +42,15 @@ nginx_binary_name: /usr/sbin/nginx
 nginx_user: www-data
 nginx_group: www-data
 
+# client maximum body size
+nginx_max_body_size: 30m
+
+# timeout for reading response from uwsgi
+uwsgi_read_timeout: 60s
 
 ##
 ## APACHE2
-## 
+##
 
 apache2_check_binary_name: a2ensite
 
