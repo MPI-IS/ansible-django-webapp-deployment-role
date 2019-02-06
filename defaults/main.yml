@@ -48,6 +48,13 @@ nginx_max_body_size: 30m
 # timeout for reading response from uwsgi
 uwsgi_read_timeout: 60s
 
+# add server to block unknown hosts and prevent http header attacks
+# NOTE: the attack could be blocked by the app but will send an email to the managers.
+# The right way is to add a blocking server
+# If there are many apps deployed under nginx,
+# do it in a default config file (see staging server) to avoid name conflicts
+nginx_add_blocking_server: False
+
 ##
 ## APACHE2
 ##

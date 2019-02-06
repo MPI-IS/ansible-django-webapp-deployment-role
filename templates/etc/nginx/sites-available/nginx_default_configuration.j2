@@ -21,6 +21,26 @@ upstream uwsgi_{{ websiteproject }} {
   server unix:///run/uwsgi/app/{{ websiteproject }}/socket;
 }
 
+{% if nginx_add_blocking_server %}
+# server to block unknown hosts
+server {
+    server_name          _;
+    listen 443           ssl;
+    listen [::]:443      ssl;
+    return 444;
+
+    ssl                         on;
+    ssl_protocols               TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers                 RC4:HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers   on;
+    ssl_session_cache           shared:SSL:10m;
+    ssl_session_timeout         10m;
+
+    ssl_certificate     /etc/nginx/ssl/{{ websiteproject }}.crt;
+    ssl_certificate_key /etc/nginx/ssl/{{ websiteproject }}.key;
+}
+{% endif %}
+
 server {
     listen 443           ssl;
     listen [::]:443      ssl;
