@@ -23,11 +23,6 @@
     - django-webservices:app-configuration
   when: webserver=='nginx'
 
-- include: app_config_nginx.yml
-  tags:
-    - django-webservices:app-configuration
-  when: webserver=='nginx'
-
 - include: app_config_apache2.yml
   tags:
     - django-webservices:app-configuration
