@@ -37,7 +37,6 @@
   stat:
     path: "{{ django_deployment_root_folder }}/{{ url }}/current/"
   register: current_instance_folder_stat
-  tags: toto
 
 # change ownership
 - name: Setting up the owner of the files and default permissions
@@ -47,7 +46,6 @@
     recurse: yes
     path: "{{ django_deployment_root_folder }}/{{ url }}/current/"
   when: current_instance_folder_stat.stat.exists == True
-  tags: toto
 
 # applies permissions
 - block:
