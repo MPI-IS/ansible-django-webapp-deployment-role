@@ -3,12 +3,9 @@
 #
 
 - block:
-  - name: "[APACHE2] checking the configuration prior to the installation"
-    shell: "{{ apache2_check_binary_name }}"
-    tags: apache, webserver
 
   - name: "[APACHE2] configuration for django project {{ websiteproject }}"
-    template: 
+    template:
       src: etc/apache2/sites-available/apache2_default_configuration.j2
       dest: /etc/apache2/sites-available/{{ websiteproject }}.conf
       owner: "{{ apache2_user }}"
@@ -19,11 +16,13 @@
   - name: "[APACHE2] certificate folder"
     file: path=/etc/apache2/ssl/ state=directory owner=root
     tags: apache, certificate
+
   - name: "[APACHE2] certificate"
     copy: content={{ site_certificate }} dest=/etc/apache2/ssl/{{ websiteproject }}.crt
     notify:
       - restart apache2
     tags: apache, certificate
+
   - name: "[APACHE2] certificate key"
     copy: content={{ site_key }} dest=/etc/apache2/ssl/{{ websiteproject }}.key owner={{ apache2_user }} group={{ apache2_group }} mode=400
     notify:
@@ -51,5 +50,3 @@
     - debug: msg="Error caught during the Apache configuration. Warning - certificates and key left."
     - file: path=/etc/apache2/sites-enabled/{{ websiteproject }}.conf state=absent
     - command: /bin/false
-    
-  
