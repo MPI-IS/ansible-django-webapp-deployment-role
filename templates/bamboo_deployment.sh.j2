@@ -51,22 +51,8 @@ export {{ proxy }}
 
 
 # installing virtual environment with bootstrapping
-{% if python_major == 3 %}
 echo "*********** creating the virtual environment for python3"
 python3 -m venv $currentD/venv
-{% else %}
-echo "*********** creating the virtual environment for python2"
-mkdir $currentD/tmp
-mkdir $currentD/pip-bootstrap
-cd $currentD/tmp
-wget https://bootstrap.pypa.io/get-pip.py
-python get-pip.py --root=$currentD/pip-bootstrap --ignore-installed
-export PATH=$currentD/pip-bootstrap/usr/local/bin:$PATH
-export PYTHONPATH=$currentD/pip-bootstrap/usr/local/lib/python2.7/dist-packages:$PYTHONPATH
-pip install --root=$currentD/pip-bootstrap --ignore-installed virtualenv
-
-virtualenv $currentD/venv
-{% endif %}
 
 . $currentD/venv/bin/activate
 pip install -U pip
@@ -84,6 +70,11 @@ tar xjf $current_archive
 # installing content of requirements.txt
 pip install -r requirements.txt
 {% endif %}
+
+# installing content of requirements.txt for submodules
+{% for submodule in django_pip_install_requirements_submodules %}
+pip install -r {{ submodule }}/requirements.txt
+{% endfor %}
 
 # deflating some files inside the static folder
 {% for archive in django_archives_to_deflate %}
@@ -119,7 +110,7 @@ export DJANGO_SETTINGS_SECRET_FILE={{ django_deployment_root_folder }}/{{ url }}
 # applies the migrations and deflate the statics
 echo "*********** migrating the database"
 cd $currentD/src
-python manage.py migrate --noinput -v 3
+python manage.py migrate --noinput -v3
 
 echo "*********** collecting the statics"
 mkdir -p $currentD/static

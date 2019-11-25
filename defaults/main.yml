@@ -2,7 +2,7 @@
 
 # Variables listed here are applicable to all host groups
 
-# 
+#
 
 # Indicates if we are behind a proxy. Exports all the variables here before running
 # any pip install related command
@@ -23,7 +23,7 @@ uwsgi_group: www-data
 # additional options passed to the uwsgi
 uwsgi_additional_options: []
 
-## 
+##
 ## Default webserver: apache2 or nginx
 webserver: nginx
 
@@ -32,7 +32,7 @@ application_additional_packages: []
 
 #
 # NGINX default parameters
-# 
+#
 
 # location of NGinx (for checking the configuration file)
 nginx_binary_name: /usr/sbin/nginx
@@ -85,6 +85,9 @@ django_archives_to_deflate: []
 # If True, looks for a requirement.txt file in the source folder and installs
 # the dependencies specified there
 django_pip_install_requirements: False
+
+# Submodules for which the dependencies in requirements.txt should be installed
+django_pip_install_requirements_submodules: []
 
 # Additional environment variables that can be set prior to starting the Django app
 django_webapplication_additional_environment_settings: {}

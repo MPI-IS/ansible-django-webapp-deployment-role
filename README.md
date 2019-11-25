@@ -19,7 +19,7 @@ In more details, the role:
 In more details, the deployment scripts takes care of the following:
 
 * creates a new folder following the version name given
-* installs a new ``virtualenv`` in that folder and installs the dependencies of the project. It can optionally source a `requirements.txt` file (see ``django_pip_install_requirements``)
+* installs a new ``virtualenv`` in that folder and installs the dependencies of the project. It can optionally source a `requirements.txt` file (see ``django_pip_install_requirements`` and ``django_pip_install_requirements_submodules``)
 * binds uWSGI to the ``virtualenv``
 * deflate the sources in that folder
 * creates a snapshot of the database
@@ -58,7 +58,8 @@ Role Variables
 |django_webapplication_additional_environment_settings| | a dictionary containing additional environment variables to be set for running the application|
 |django_revision_file_pattern | **required** | pattern of the deployment tarballs. This pattern may contain additional environment variables such as `${bamboo_planRepository_revision}` that indicates the revision generating this tarball. This is used in order to identify the file to extract during the
 deployment script.|
-|django_pip_install_requirements | `False` | If `True` installs the requirements given by a `requirement.txt` file inside the deployed archive within the virtual environment. |
+|django_pip_install_requirements | `False` | if `True` installs the requirements given by a `requirement.txt` file inside the deployed archive within the virtual environment. |
+|django_pip_install_requirements_submodules | `[]` | submodules for which to install the requirements given by a `requirement.txt` file within the virtual environment. |
 |application_additional_packages| `[]` | additional packages to install that are specific to the application (if your web application needs eg. `rabbitmq`)|
 
 * the `django_dependencies` should contain a stable set of dependencies. `Django` itself is not specified in case a specific version should be installed.
