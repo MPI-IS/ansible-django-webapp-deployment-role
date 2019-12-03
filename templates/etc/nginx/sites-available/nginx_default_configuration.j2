@@ -62,18 +62,13 @@ server {
     # by NGINX
     # static location
     location /static {
-      alias {{ django_deployment_root_folder }}/{{ url }}/current/static;
+      alias {{ django_deployment_root_folder }}/{{ url }}/current/src/static;
     }
 
     # media location, no protection
     location /media {
-      alias {{ django_deployment_root_folder }}/{{ url }}/current/media;
+      alias {{ django_deployment_root_folder }}/{{ url }}/current/src/media;
       #internal;
-    }
-
-    location = / {
-      uwsgi_pass uwsgi_{{ websiteproject }};
-      include {{ django_deployment_root_folder }}/{{ url }}/uwsgi_params;
     }
 
     location / {

@@ -13,7 +13,7 @@ if [ -z "$bamboo_deploy_environment" ] || [ -z "$bamboo_deploy_release" ] ; then
 fi
 
 # creating the new folders
-projectRoot={{ django_deployment_root_folder }}/{{ url }}/
+projectRoot={{ django_deployment_root_folder }}/{{ url }}
 currentD=$projectRoot/project/$bamboo_deploy_release
 previousD=$projectRoot/project/$bamboo_deploy_release_previous
 current_archive=$projectRoot/versions/{{ django_revision_file_pattern }} {# this may use the variable bamboo_planRepository_revision #}
@@ -32,8 +32,6 @@ if [ -d "$currentD" ] ; then
 	if [ "$currentD" != "$previousD" ]; then
 		rm -rf $currentD
 	else
-		rm -rf $currentD/tmp
-		rm -rf $currentD/pip-bootstrap
 		rm -rf $currentD/venv
 		rm -rf $currentD/src/{{ django_source_folder }}/static
 	fi
@@ -91,13 +89,13 @@ echo "*********** retrieving previous deployment data"
 echo "Previous release is: " $bamboo_deploy_release_previous
 if [ "$currentD" != "$previousD" ] ; then
 	cp $previousD/src/db.sqlite3 $currentD/src || echo "no previous SQLite file found"
-	cp -R $previousD/media $currentD/. || echo "no previous media folder found"
+	cp -R $previousD/src/media $currentD/src/. || echo "no previous media folder found"
 else
     echo "No previous version"
 fi
 
-if [ ! -d "$currentD/media" ] ; then
-	mkdir -p $currentD/media
+if [ ! -d "$currentD/src/media" ] ; then
+	mkdir -p $currentD/src/media
 fi
 
 # changes the settings
@@ -105,34 +103,26 @@ fi
 export DJANGO_SETTINGS_MODULE={{ django_settings_file }}
 export DJANGO_SETTINGS_SECRET_FILE={{ django_deployment_root_folder }}/{{ url }}/secrets.py
 
-
-
 # applies the migrations and deflate the statics
 echo "*********** migrating the database"
 cd $currentD/src
 python manage.py migrate --noinput -v3
 
 echo "*********** collecting the statics"
-mkdir -p $currentD/static
 python manage.py collectstatic --noinput
-
 
 # mutates the file permissions for the uwsgi user
 echo "*********** fix permissions"
-setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/media
-setfacl -m u:{{ uwsgi_user }}:rx -R $currentD/static
+setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/media
+setfacl -m u:{{ uwsgi_user }}:rx -R $currentD/src/static
 chmod go-rwx $currentD/src/db.sqlite3
 setfacl -m u:{{ uwsgi_user }}:rwx $currentD/src/db.sqlite3
 setfacl -m u:{{ uwsgi_user }}:rwx $currentD/src
-setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/logs
-setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/temporary_upload
+setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/logs
+setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/temporary
 
 # compile all
 python -m compileall $currentD/src/
-
-# cleanups
-rm -rf $currentD/pip-bootstrap
-rm -rf $currentD/tmp
 
 # make a final symbolic link
 echo "*********** creating the symlinks"

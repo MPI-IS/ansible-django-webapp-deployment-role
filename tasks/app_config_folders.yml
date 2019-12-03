@@ -59,13 +59,12 @@
       state: present
       recursive: "{{ item.recursive }}"
     with_items:
-     - { path: 'media',             recursive: 'yes',  permissions: "rwx"}
-     - { path: 'static',            recursive: 'yes',  permissions: "rx"}
-     - { path: 'src/',              recursive: 'yes',  permissions: "rx"} # before the db.sqlite3
-     - { path: 'src/',              recursive: 'no',   permissions: "rwx"} # because of sqlite write
-     - { path: 'src/db.sqlite3',    recursive: 'no',   permissions: "rwx"}
-     - { path: 'logs/',             recursive: 'yes',  permissions: "rwx"}
-     - { path: 'temporary_upload/', recursive: 'yes',  permissions: "rwx"}
+     - { path: 'src/media', recursive: 'yes',  permissions: "rwx"}
+     - { path: 'src/', recursive: 'yes',  permissions: "rx"} # before the db.sqlite3
+     - { path: 'src/', recursive: 'no',   permissions: "rwx"} # because of sqlite write
+     - { path: 'src/db.sqlite3', recursive: 'no',   permissions: "rwx"}
+     - { path: 'src/logs/', recursive: 'yes',  permissions: "rwx"}
+     - { path: 'src/temporary/', recursive: 'yes',  permissions: "rwx"}
 
   vars:
     current_instance_folder: "{{ django_deployment_root_folder }}/{{ url }}/current"
