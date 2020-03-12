@@ -1,0 +1,12 @@
+# PostgresQL configuration
+
+- block:
+  - name: create PostgresQL database and administrative user
+    shell: echo "{{ item }}" | sudo -u postgres psql || true;
+    with_items:
+      - CREATE DATABASE {{ postgresql_database }};
+      - CREATE USER {{ postgresql_user }} WITH ENCRYPTED PASSWORD '{{ postgresql_password }}'
+      - ALTER ROLE {{ postgresql_user }} SET client_encoding TO 'utf8';
+      - ALTER ROLE {{ postgresql_user }} SET default_transaction_isolation TO 'read committed';
+      - ALTER ROLE {{ postgresql_user }} SET timezone to 'UTC';
+      - GRANT ALL PRIVILEGES ON DATABASE {{ postgresql_database }} TO {{ postgresql_user }};
