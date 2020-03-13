@@ -1,12 +1,38 @@
-# PostgresQL configuration
+# PostgresQL configuration.
 
 - block:
-  - name: create PostgresQL database and administrative user
-    shell: echo "{{ item }}" | sudo -u postgres psql || true;
-    with_items:
-      - CREATE DATABASE {{ postgresql_database }};
-      - CREATE USER {{ postgresql_user }} WITH ENCRYPTED PASSWORD '{{ postgresql_password }}'
-      - ALTER ROLE {{ postgresql_user }} SET client_encoding TO 'utf8';
-      - ALTER ROLE {{ postgresql_user }} SET default_transaction_isolation TO 'read committed';
-      - ALTER ROLE {{ postgresql_user }} SET timezone to 'UTC';
-      - GRANT ALL PRIVILEGES ON DATABASE {{ postgresql_database }} TO {{ postgresql_user }};
+    - name: create PostgresQL database
+      postgresql_db:
+        name: "{{ postgresql_database }}"
+        encoding: UTF-8
+        state: present
+      become_user: postgres
+      tags: postgresql, database
+
+    - name: create PostgresQL user
+      postgresql_user:
+        name: "{{ postgresql_user }}"
+        password: "{{ postgresql_password }}"
+        encrypted: true
+        state: present
+      become_user: postgres
+      tags: postgresql, database
+
+    - name: set database owner
+      postgresql_owner:
+        obj_name: "{{ postgresql_database }}"
+        obj_type: database
+        new_owner: "{{ postgresql_database }}"
+      become_user: postgres
+      tags: postgresql, database
+
+    - name: enable md5 login to the database from localhost
+      postgresql_pg_hba:
+        contype: local
+        dest: "/etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf"
+        databases: "{{ postgresql_database }}"
+        method: md5
+        state: present
+      notify:
+        - restart postgresql
+      tags: postgresql, database

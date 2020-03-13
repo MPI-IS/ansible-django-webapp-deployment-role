@@ -4,3 +4,6 @@
 
 - name: restart apache2
   service: name=apache2 state=restarted enabled=yes
+
+- name: restart postgresql
+  service: name=postgresql state=restarted enabled=yes
