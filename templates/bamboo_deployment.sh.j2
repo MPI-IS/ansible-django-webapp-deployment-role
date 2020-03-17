@@ -146,11 +146,15 @@ python manage.py collectstatic --noinput
 echo "*********** fix permissions"
 setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/media
 setfacl -m u:{{ uwsgi_user }}:rx -R $currentD/src/static
-chmod go-rwx $currentD/src/db.sqlite3
-setfacl -m u:{{ uwsgi_user }}:rwx $currentD/src/db.sqlite3
+
 setfacl -m u:{{ uwsgi_user }}:rwx $currentD/src
 setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/logs
 setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/temporary
+
+{% if database=="sqlite3" %}
+chmod go-rwx $currentD/src/db.sqlite3
+setfacl -m u:{{ uwsgi_user }}:rwx $currentD/src/db.sqlite3
+{% endif %}
 
 # compile all
 python -m compileall $currentD/src/
