@@ -63,8 +63,3 @@
       loop: "{{ postgresql_additional_users }}"
       when: postgresql_additional_users is defined
       tags: postgresql, database
-
-    - name: check if initial dump is on disk
-      stat:
-        path: "{{ django_deployment_root_folder }}/{{ url }}/postgresql_initial_dump.sql"
-      register: initial_dump_file
