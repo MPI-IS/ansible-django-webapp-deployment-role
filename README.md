@@ -112,6 +112,9 @@ deployment script.|
 |postgresql_database | **required** | name of the application-specific database|
 |postgresql_user | **required** | user name used to connect to the database. This user is also the database owner|
 |postgresql_password | **required** | password for the database user|
+|postgresql_additonal_users | [] | the list of additional roles to be created in the database|
+|postgresql_dump | | path to the database dump. This will be used to restore the initial state of the database during the very first deployment|
+|postgresql_post_restore | | an optional SQL statement to be executed after restoring the database|
 
 
 **Additional variables**
