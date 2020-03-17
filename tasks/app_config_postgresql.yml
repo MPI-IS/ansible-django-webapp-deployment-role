@@ -13,8 +13,8 @@
       copy:
         src: "{{ postgresql_dump }}"
         dest: "{{ django_deployment_root_folder }}/{{ url }}/postgresql_initial_dump.sql"
+        owner: "{{ django_deployment_user }}"
         mode: 0400
-        owner: "postgres"
       when: postgresql_dump is defined and postgresql_existence_check is failed
       tags: postgresql, database
 
@@ -68,19 +68,3 @@
       stat:
         path: "{{ django_deployment_root_folder }}/{{ url }}/postgresql_initial_dump.sql"
       register: initial_dump_file
-
-    - name: apply database dump (if still on disk)
-      postgresql_db:
-        name: "{{ postgresql_database }}"
-        state: restore
-        target: "{{ django_deployment_root_folder }}/{{ url }}/postgresql_initial_dump.sql"
-      become_user: postgres
-      when: initial_dump_file.stat.exists == True
-      register: apply_initial_dump
-      tags: postgresql, database
-
-    - name: remove the dump file if the migration was successfull
-      file:
-        path: "{{ django_deployment_root_folder }}/{{ url }}/postgresql_initial_dump.sql"
-        state: absent
-      when: apply_initial_dump is succeeded
