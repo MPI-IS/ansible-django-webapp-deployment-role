@@ -14,7 +14,7 @@
         src: "{{ postgresql_dump }}"
         dest: "{{ django_deployment_root_folder }}/{{ url }}/postgresql_initial_dump.sql"
         owner: "{{ django_deployment_user }}"
-        mode: 0400
+        mode: 0600
       when: postgresql_dump is defined and postgresql_existence_check is failed
       tags: postgresql, database
 

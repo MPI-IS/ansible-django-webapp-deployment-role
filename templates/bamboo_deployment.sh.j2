@@ -128,7 +128,10 @@ if [ -f "{{ django_deployment_root_folder }}/{{ url }}/postgresql_initial_dump.s
     cat {{ django_deployment_root_folder }}/{{ url }}/postgresql_initial_dump.sql | sudo -u postgres psql {{ postgresql_database }}
 
     # remove the dump so we don't try to apply it the second time
-    $? && rm {{ django_deployment_root_folder }}/{{ url }}/postgresql_initial_dump.sql;
+    if [ $? -eq 0 ]; then
+        echo "*********** dump was succesfully applied. Removing the dump file.";
+        rm {{ django_deployment_root_folder }}/{{ url }}/postgresql_initial_dump.sql;
+    fi
 
     {% if postgresql_post_restore is defined %}
     # It's possible we still need to alter the database
