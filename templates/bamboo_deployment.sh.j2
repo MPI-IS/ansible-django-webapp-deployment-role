@@ -147,12 +147,11 @@ python manage.py collectstatic --noinput
 
 # mutates the file permissions for the uwsgi user
 echo "*********** fix permissions"
-setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/media
-setfacl -m u:{{ uwsgi_user }}:rx -R $currentD/src/static
-
 setfacl -m u:{{ uwsgi_user }}:rwx $currentD/src
-setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/logs
-setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/temporary
+[ -d "$currentD/src/logs" ]      && setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/logs
+[ -d "$currentD/src/temporary" ] && setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/temporary
+[ -d "$currentD/src/media" ]     && setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/media
+[ -d "$currentD/src/static" ]    && setfacl -m u:{{ uwsgi_user }}:rx  -R $currentD/src/static
 
 {% if database=="sqlite3" %}
 chmod go-rwx $currentD/src/db.sqlite3
