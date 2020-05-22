@@ -32,4 +32,8 @@
     - django_dependencies
     - django_environment_variables
     - webserver
+    - database
     - application_additional_packages
+    - postgresql_database
+    - postgresql_user
+    - postgresql_password

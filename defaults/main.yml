@@ -27,6 +27,9 @@ uwsgi_additional_options: []
 ## Default webserver: apache2 or nginx
 webserver: nginx
 
+## Default database: sqlite3 or postgresql
+webserver: sqlite3
+
 # Packages to be installed on the host for running this application
 application_additional_packages: []
 

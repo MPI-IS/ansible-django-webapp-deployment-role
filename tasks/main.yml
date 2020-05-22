@@ -28,6 +28,11 @@
     - django-webservices:app-configuration
   when: webserver=='apache2'
 
+- include: app_config_postgresql.yml
+  tags:
+    - django-webservices:app-configuration
+  when: database=="postgresql"
+
 - include: app_config_deployment_script.yml
   tags:
     - django-webservices:app-configuration

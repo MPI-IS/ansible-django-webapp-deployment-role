@@ -103,9 +103,43 @@ fi
 export DJANGO_SETTINGS_MODULE={{ django_settings_file }}
 export DJANGO_SETTINGS_SECRET_FILE={{ django_deployment_root_folder }}/{{ url }}/secrets.py
 
-# applies the migrations and deflate the statics
 echo "*********** migrating the database"
 cd $currentD/src
+{% if postgresql_dump is defined %}
+
+if [ -f "{{ django_deployment_root_folder }}/{{ url }}/postgresql_initial_dump.sql" ] ; then
+    # If there is an existing database dump we have to proceed
+    # carefully. The dump might already contain all the necessary
+    # django models not only for the app itself, but also the standard
+    # django models including content types, auth, admin and so on.
+
+    # The strategy that worked so far for the only application we have is to:
+    # 1. Apply all the standard django migrations.
+    # 2. Apply the initial migration.
+    # 3. Apply the database dump.
+    # 4. Proceed with the rest of migrations.
+
+    python manage.py migrate contenttypes
+    python3 manage.py migrate auth
+    python3 manage.py migrate admin
+    python3 manage.py migrate sessions
+    python3 manage.py migrate {{ django_source_folder }} 0001_initial --fake-initial
+
+    cat {{ django_deployment_root_folder }}/{{ url }}/postgresql_initial_dump.sql | sudo -u postgres psql {{ postgresql_database }}
+
+    # remove the dump so we don't try to apply it the second time
+    if [ $? -eq 0 ]; then
+        echo "*********** dump was succesfully applied. Removing the dump file.";
+        rm {{ django_deployment_root_folder }}/{{ url }}/postgresql_initial_dump.sql;
+    fi
+
+    {% if postgresql_post_restore is defined %}
+    # It's possible we still need to alter the database
+    sudo -u postgres psql {{ postgresql_database }} -c "{{ postgresql_post_restore }}"
+    {% endif %}
+fi
+
+{% endif %}
 python manage.py migrate --noinput -v3
 
 echo "*********** collecting the statics"
@@ -113,13 +147,16 @@ python manage.py collectstatic --noinput
 
 # mutates the file permissions for the uwsgi user
 echo "*********** fix permissions"
-setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/media
-setfacl -m u:{{ uwsgi_user }}:rx -R $currentD/src/static
+setfacl -m u:{{ uwsgi_user }}:rwx $currentD/src
+[ -d "$currentD/src/logs" ]      && setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/logs
+[ -d "$currentD/src/temporary" ] && setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/temporary
+[ -d "$currentD/src/media" ]     && setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/media
+[ -d "$currentD/src/static" ]    && setfacl -m u:{{ uwsgi_user }}:rx  -R $currentD/src/static
+
+{% if database=="sqlite3" %}
 chmod go-rwx $currentD/src/db.sqlite3
 setfacl -m u:{{ uwsgi_user }}:rwx $currentD/src/db.sqlite3
-setfacl -m u:{{ uwsgi_user }}:rwx $currentD/src
-setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/logs
-setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/temporary
+{% endif %}
 
 # compile all
 python -m compileall $currentD/src/

@@ -74,6 +74,7 @@ deployment script.|
 |variable|default|meaning|
 |----------|---------|---------|
 |webserver| **required** | the webserver in front of uWSGI|
+|database| `sqlite3` | the database required by the application. Supported values are `sqlite3` and `postgresql`|
 |site_certificate| **required** | the certificate of the website|
 |site_key|**required**| the key of the certificate|
 
@@ -103,6 +104,18 @@ deployment script.|
 |apache2_check_binary_name | `a2ensite` | same as `nginx_binary_name` but Apache specific|
 |apache2_user| `www-data`| user running the Apache2 daemon|
 |apache2_group| `www-data`| group of the user running the Apache2 daemon|
+
+**PostgresQL**
+
+|variable|default|meaning|
+|----------|---------|---------|
+|postgresql_database | **required** | name of the application-specific database|
+|postgresql_user | **required** | user name used to connect to the database. This user is also the database owner|
+|postgresql_password | **required** | password for the database user|
+|postgresql_additonal_users | [] | the list of additional roles to be created in the database|
+|postgresql_dump | | path to the database dump. This will be used to restore the initial state of the database during the very first deployment|
+|postgresql_post_restore | | an optional SQL statement to be executed after restoring the database|
+
 
 **Additional variables**
 
