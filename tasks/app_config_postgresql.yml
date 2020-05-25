@@ -1,65 +1,45 @@
-# PostgresQL configuration.
+# PostgreSQL configuration.
 
 - block:
-    - name: check whether the database exists
-      shell: psql -l {{ postgresql_database }}
-      ignore_errors: true
-      register: postgresql_existence_check
-      become_user: postgres
-      tags: postgresql, database
-      # will fail if {{ postgresql_database }} is not defined yet
+  - name: "[Postgres] create Postgres user"
+    postgresql_user:
+      name: "{{ postgresql_user }}"
+      password: "{{ postgresql_password }}"
+      encrypted: true
+    become_user: postgres
+    tags: postgresql, database
 
-    - name: copy database dump (if available)
-      copy:
-        src: "{{ postgresql_dump }}"
-        dest: "{{ django_deployment_root_folder }}/{{ url }}/postgresql_initial_dump.sql"
-        owner: "{{ django_deployment_user }}"
-        mode: 0600
-      when: postgresql_dump is defined and postgresql_existence_check is failed
-      tags: postgresql, database
+  - name: "[Postgres] create Postgres database"
+    postgresql_db:
+      name: "{{ postgresql_database }}"
+      encoding: UTF-8
+      state: present
+    become_user: postgres
+    tags: postgresql, database
 
-    - name: create PostgresQL database
-      postgresql_db:
-        name: "{{ postgresql_database }}"
-        encoding: UTF-8
-        state: present
-      become_user: postgres
-      tags: postgresql, database
+  - name: "[Postgres] set database owner"
+    postgresql_owner:
+      obj_name: "{{ postgresql_database }}"
+      obj_type: database
+      new_owner: "{{ postgresql_user }}"
+    become_user: postgres
+    tags: postgresql, database
 
-    - name: create PostgresQL user
-      postgresql_user:
-        name: "{{ postgresql_user }}"
-        password: "{{ postgresql_password }}"
-        encrypted: true
-        state: present
-      become_user: postgres
-      tags: postgresql, database
+  - name: "[Postgres] get postgres version"
+    postgresql_info:
+      filter: ver*,ext
+    register: postgres_info
+    become_user: postgres
+    tags: postgresql, database
 
-    - name: set database owner
-      postgresql_owner:
-        obj_name: "{{ postgresql_database }}"
-        obj_type: database
-        new_owner: "{{ postgresql_database }}"
-      become_user: postgres
-      tags: postgresql, database
-
-    - name: enable md5 login to the database from localhost
-      postgresql_pg_hba:
-        dest: "/etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf"
-        databases: "{{ postgresql_database }}"
-        users: "{{ postgresql_user }}"
-        contype: local
-        method: md5
-        state: present
-      notify:
-        - restart postgresql
-      tags: postgresql, database
-
-    - name: create additional PostgresQL users
-      postgresql_user:
-        name: "{{ item }}"
-        state: present
-      become_user: postgres
-      loop: "{{ postgresql_additional_users }}"
-      when: postgresql_additional_users is defined
-      tags: postgresql, database
+  - name: "[Postgres] enable md5 login to the database from localhost"
+    postgresql_pg_hba:
+      dest: "/etc/postgresql/{{ postgres_info.version.major }}/main/pg_hba.conf"
+      databases: "{{ postgresql_database }}"
+      users: "{{ postgresql_user }}"
+      contype: local
+      method: md5
+      state: present
+    notify:
+      - restart postgresql
+    tags: postgresql, database

@@ -34,6 +34,3 @@
     - webserver
     - database
     - application_additional_packages
-    - postgresql_database
-    - postgresql_user
-    - postgresql_password

@@ -48,9 +48,14 @@ export {{ proxy }}
 {% endfor %}
 
 
-# installing virtual environment with bootstrapping
+# installing virtual environment
 echo "*********** creating the virtual environment for python3"
-python3 -m venv $currentD/venv
+{% if python_minor %}
+python{{ python_major }}.{{ python_minor }} -m venv --copies $currentD/venv
+{% else %}
+python{{ python_major }} -m venv $currentD/venv --copies
+{% endif %}
+
 
 . $currentD/venv/bin/activate
 pip install -U pip
@@ -79,24 +84,23 @@ pip install -r {{ submodule }}/requirements.txt
 unzip {{ archive }} -d {{ django_source_folder }}/static
 {% endfor %}
 
-
 # copying the previous files
 
 echo "*********** retrieving previous deployment data"
-
-# backup of the database, previous media files
-# static files not part of the backup, will be deployed by the application
 echo "Previous release is: " $bamboo_deploy_release_previous
+
+# backup previous media files
+# static files not part of the backup, will be deployed by the application
 if [ "$currentD" != "$previousD" ] ; then
-	cp $previousD/src/db.sqlite3 $currentD/src || echo "no previous SQLite file found"
 	cp -R $previousD/src/media $currentD/src/. || echo "no previous media folder found"
 else
-    echo "No previous version"
+    echo "Media files: No previous version"
 fi
 
 if [ ! -d "$currentD/src/media" ] ; then
 	mkdir -p $currentD/src/media
 fi
+
 
 # changes the settings
 # done directly by the environment variable of uwsgi
@@ -105,41 +109,21 @@ export DJANGO_SETTINGS_SECRET_FILE={{ django_deployment_root_folder }}/{{ url }}
 
 echo "*********** migrating the database"
 cd $currentD/src
-{% if postgresql_dump is defined %}
 
-if [ -f "{{ django_deployment_root_folder }}/{{ url }}/postgresql_initial_dump.sql" ] ; then
-    # If there is an existing database dump we have to proceed
-    # carefully. The dump might already contain all the necessary
-    # django models not only for the app itself, but also the standard
-    # django models including content types, auth, admin and so on.
-
-    # The strategy that worked so far for the only application we have is to:
-    # 1. Apply all the standard django migrations.
-    # 2. Apply the initial migration.
-    # 3. Apply the database dump.
-    # 4. Proceed with the rest of migrations.
-
-    python manage.py migrate contenttypes
-    python3 manage.py migrate auth
-    python3 manage.py migrate admin
-    python3 manage.py migrate sessions
-    python3 manage.py migrate {{ django_source_folder }} 0001_initial --fake-initial
-
-    cat {{ django_deployment_root_folder }}/{{ url }}/postgresql_initial_dump.sql | sudo -u postgres psql {{ postgresql_database }}
-
-    # remove the dump so we don't try to apply it the second time
-    if [ $? -eq 0 ]; then
-        echo "*********** dump was succesfully applied. Removing the dump file.";
-        rm {{ django_deployment_root_folder }}/{{ url }}/postgresql_initial_dump.sql;
-    fi
-
-    {% if postgresql_post_restore is defined %}
-    # It's possible we still need to alter the database
-    sudo -u postgres psql {{ postgresql_database }} -c "{{ postgresql_post_restore }}"
+if [ "$currentD" != "$previousD" ] ; then
+    {% if database=="sqlite3" %}
+    # SQLite3
+    cp $previousD/src/db.sqlite3 $currentD/src || echo "no previous SQLite file found"
+    {% else %}
+    # PostgreSQL
+    # Back up database
+    export PGPASSWORD="{{ postgresql_password }}"
+    pg_dump -U {{ postgresql_user }} -F p {{ postgresql_database }} > $previousD/{{ postgresql_database }}-$bamboo_deploy_release_previous
     {% endif %}
+else
+    echo "Database backup: No previous version"
 fi
 
-{% endif %}
 python manage.py migrate --noinput -v3
 
 echo "*********** collecting the statics"
@@ -148,10 +132,10 @@ python manage.py collectstatic --noinput
 # mutates the file permissions for the uwsgi user
 echo "*********** fix permissions"
 setfacl -m u:{{ uwsgi_user }}:rwx $currentD/src
-[ -d "$currentD/src/logs" ]      && setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/logs
-[ -d "$currentD/src/temporary" ] && setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/temporary
-[ -d "$currentD/src/media" ]     && setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/media
-[ -d "$currentD/src/static" ]    && setfacl -m u:{{ uwsgi_user }}:rx  -R $currentD/src/static
+setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/logs
+setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/temporary
+setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/media
+setfacl -m u:{{ uwsgi_user }}:rx  -R $currentD/src/static
 
 {% if database=="sqlite3" %}
 chmod go-rwx $currentD/src/db.sqlite3
