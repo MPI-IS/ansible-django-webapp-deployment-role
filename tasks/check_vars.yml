@@ -32,4 +32,5 @@
     - django_dependencies
     - django_environment_variables
     - webserver
+    - database
     - application_additional_packages

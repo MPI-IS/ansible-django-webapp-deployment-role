@@ -40,7 +40,7 @@ Requirements
 ------------
 
 This works only on Ubuntu but can easily be adapted for other platforms. Prior to running this role,
-prepare the packages that needs to be installed on the target machine with the role `raffienficiaud.ansible-django-webapp-prepare-host-role`.
+prepare the packages that needs to be installed on the target machine with the role `ansible-django-webapp-prepare-host-role`.
 
 Role Variables
 --------------
@@ -73,9 +73,18 @@ deployment script.|
 
 |variable|default|meaning|
 |----------|---------|---------|
-|webserver| **required** | the webserver in front of uWSGI|
+|webserver| `nginx` | the webserver in front of uWSGI. Support `nginx` and `apache`|
+|database| `sqlite3` | the database required by the application. Supported values are `sqlite3` and `postgresql`|
 |site_certificate| **required** | the certificate of the website|
 |site_key|**required**| the key of the certificate|
+
+
+**Python**
+
+|variable|default|meaning|
+|----------|---------|---------|
+|python_major| 3 | Major version of Python used|
+|python_minor|  | Minor version of Python used|
 
 **uWSGI**
 
@@ -103,6 +112,16 @@ deployment script.|
 |apache2_check_binary_name | `a2ensite` | same as `nginx_binary_name` but Apache specific|
 |apache2_user| `www-data`| user running the Apache2 daemon|
 |apache2_group| `www-data`| group of the user running the Apache2 daemon|
+
+**PostgreSQL**
+
+|variable|default|meaning|
+|----------|---------|---------|
+|postgresql_database |  | Database name|
+|postgresql_user |  | user name used to connect to the database. This user is also the database owner|
+|postgresql_password |  | password for the database user|
+
+
 
 **Additional variables**
 

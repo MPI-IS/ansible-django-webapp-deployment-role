@@ -48,9 +48,14 @@ export {{ proxy }}
 {% endfor %}
 
 
-# installing virtual environment with bootstrapping
+# installing virtual environment
 echo "*********** creating the virtual environment for python3"
-python3 -m venv $currentD/venv
+{% if python_minor %}
+python{{ python_major }}.{{ python_minor }} -m venv --copies $currentD/venv
+{% else %}
+python{{ python_major }} -m venv $currentD/venv --copies
+{% endif %}
+
 
 . $currentD/venv/bin/activate
 pip install -U pip
@@ -79,33 +84,46 @@ pip install -r {{ submodule }}/requirements.txt
 unzip {{ archive }} -d {{ django_source_folder }}/static
 {% endfor %}
 
-
 # copying the previous files
 
 echo "*********** retrieving previous deployment data"
-
-# backup of the database, previous media files
-# static files not part of the backup, will be deployed by the application
 echo "Previous release is: " $bamboo_deploy_release_previous
+
+# backup previous media files
+# static files not part of the backup, will be deployed by the application
 if [ "$currentD" != "$previousD" ] ; then
-	cp $previousD/src/db.sqlite3 $currentD/src || echo "no previous SQLite file found"
 	cp -R $previousD/src/media $currentD/src/. || echo "no previous media folder found"
 else
-    echo "No previous version"
+    echo "Media files: No previous version"
 fi
 
 if [ ! -d "$currentD/src/media" ] ; then
 	mkdir -p $currentD/src/media
 fi
 
+
 # changes the settings
 # done directly by the environment variable of uwsgi
 export DJANGO_SETTINGS_MODULE={{ django_settings_file }}
 export DJANGO_SETTINGS_SECRET_FILE={{ django_deployment_root_folder }}/{{ url }}/secrets.py
 
-# applies the migrations and deflate the statics
 echo "*********** migrating the database"
 cd $currentD/src
+
+if [ "$currentD" != "$previousD" ] ; then
+    {% if database=="sqlite3" %}
+    # SQLite3
+    cp $previousD/src/db.sqlite3 $currentD/src || echo "no previous SQLite file found"
+    {% else %}
+    # PostgreSQL
+    # Back up database
+    export PGPASSWORD="{{ postgresql_password }}"
+    pg_dump -U {{ postgresql_user }} -F p {{ postgresql_database }} > $previousD/{{ postgresql_database }}-$bamboo_deploy_release_previous
+    {% endif %}
+else
+    echo "Database backup: No previous version"
+fi
+
 python manage.py migrate --noinput -v3
 
 echo "*********** collecting the statics"
@@ -113,13 +131,16 @@ python manage.py collectstatic --noinput
 
 # mutates the file permissions for the uwsgi user
 echo "*********** fix permissions"
-setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/media
-setfacl -m u:{{ uwsgi_user }}:rx -R $currentD/src/static
-chmod go-rwx $currentD/src/db.sqlite3
-setfacl -m u:{{ uwsgi_user }}:rwx $currentD/src/db.sqlite3
 setfacl -m u:{{ uwsgi_user }}:rwx $currentD/src
 setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/logs
 setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/temporary
+setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/media
+setfacl -m u:{{ uwsgi_user }}:rx  -R $currentD/src/static
+
+{% if database=="sqlite3" %}
+chmod go-rwx $currentD/src/db.sqlite3
+setfacl -m u:{{ uwsgi_user }}:rwx $currentD/src/db.sqlite3
+{% endif %}
 
 # compile all
 python -m compileall $currentD/src/

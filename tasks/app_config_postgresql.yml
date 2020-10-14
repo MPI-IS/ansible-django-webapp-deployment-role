@@ -1,0 +1,45 @@
+# PostgreSQL configuration.
+
+- block:
+  - name: "[Postgres] create Postgres user"
+    postgresql_user:
+      name: "{{ postgresql_user }}"
+      password: "{{ postgresql_password }}"
+      encrypted: true
+    become_user: postgres
+    tags: postgresql, database
+
+  - name: "[Postgres] create Postgres database"
+    postgresql_db:
+      name: "{{ postgresql_database }}"
+      encoding: UTF-8
+      state: present
+    become_user: postgres
+    tags: postgresql, database
+
+  - name: "[Postgres] set database owner"
+    postgresql_owner:
+      obj_name: "{{ postgresql_database }}"
+      obj_type: database
+      new_owner: "{{ postgresql_user }}"
+    become_user: postgres
+    tags: postgresql, database
+
+  - name: "[Postgres] get postgres version"
+    postgresql_info:
+      filter: ver*,ext
+    register: postgres_info
+    become_user: postgres
+    tags: postgresql, database
+
+  - name: "[Postgres] enable md5 login to the database from localhost"
+    postgresql_pg_hba:
+      dest: "/etc/postgresql/{{ postgres_info.version.major }}/main/pg_hba.conf"
+      databases: "{{ postgresql_database }}"
+      users: "{{ postgresql_user }}"
+      contype: local
+      method: md5
+      state: present
+    notify:
+      - restart postgresql
+    tags: postgresql, database
