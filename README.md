@@ -121,14 +121,12 @@ deployment script.|
 |postgresql_user |  | user name used to connect to the database. This user is also the database owner|
 |postgresql_password |  | password for the database user|
 
-
-
 **Additional variables**
 
 |variable|default|meaning|
 |----------|---------|---------|
 |site_proxy|| proxy to use/expose when the firewall is limiting the connexion to the outside (during deployment, eg. on a DMZ for running PIP like commands)|
-
+|use_acl|`True`| If `True`, uses ACLs to handle specific permissions - which will not work on a NFS. Otherwise, use regular groups.|
 
 **SSL Certificate**
 

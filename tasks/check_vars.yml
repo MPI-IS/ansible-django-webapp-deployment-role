@@ -11,6 +11,7 @@
     - uwsgi_user
     - uwsgi_group
     - uwsgi_number_workers
+    - use_acl
     - nginx_binary_name
     - nginx_user
     - nginx_group

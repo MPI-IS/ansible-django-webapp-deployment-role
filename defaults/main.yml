@@ -23,7 +23,9 @@ uwsgi_group: www-data
 # additional options passed to the uwsgi
 uwsgi_additional_options: []
 
-##
+## use ACLs or groups for permissions
+use_acl: True
+
 ## Default webserver: apache2 or nginx
 webserver: nginx
 
