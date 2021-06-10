@@ -1,5 +1,5 @@
+# Deployment script
 
-# deployment script
 - block:
   - name: Creating the deployment script
     template:
@@ -15,20 +15,23 @@
       mode: 0400
       owner: "{{ django_deployment_user }}"
 
-  - name: Sets additional permissions for the secrets file
-    acl: 
-      path: "{{ item }}" 
-      entity: "{{ uwsgi_user }}" 
-      etype: user 
-      permissions: "r" 
+  - name: Sets additional permissions for the secrets file using ACLs
+    acl:
+      path: "{{ django_deployment_root_folder }}/{{ url }}/secrets.py"
+      entity: "{{ uwsgi_user }}"
+      etype: user
+      permissions: "r"
       state: present
-    with_items:
-      - "{{ django_deployment_root_folder }}/{{ url }}/secrets.py"
-      
+    when: use_acl
+
+  - name: Sets additional permissions for the secrets file using groups
+    file:
+      path: "{{ django_deployment_root_folder }}/{{ url }}/secrets.py"
+      mode: 0440
+      group: "{{ uwsgi_group }}"
+    when: not use_acl
+
   rescue:
-    - debug: 
+    - debug:
         msg: "Error caught, please remove {{ django_deployment_root_folder }}/{{ url }} if needed"
-    # removes the whole directory in case of failure
-    # Raffi: too dangerous in case there is already stuff in those folders (already deployed applications)
-    #- file: path="{{ django_deployment_root_folder }}/{{ url }}" state=absent
     - command: /bin/false

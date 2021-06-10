@@ -131,6 +131,8 @@ python manage.py collectstatic --noinput
 
 # mutates the file permissions for the uwsgi user
 echo "*********** fix permissions"
+{% if use_acl %}
+# Using ACLs
 setfacl -m u:{{ uwsgi_user }}:rwx $currentD/src
 setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/logs
 setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/temporary
@@ -140,6 +142,9 @@ setfacl -m u:{{ uwsgi_user }}:rx  -R $currentD/src/static
 {% if database=="sqlite3" %}
 chmod go-rwx $currentD/src/db.sqlite3
 setfacl -m u:{{ uwsgi_user }}:rwx $currentD/src/db.sqlite3
+{% endif %}
+{% else %}
+# Using groups
 {% endif %}
 
 # compile all
