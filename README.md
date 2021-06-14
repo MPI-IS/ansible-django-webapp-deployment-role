@@ -84,7 +84,12 @@ deployment script.|
 |variable|default|meaning|
 |----------|---------|---------|
 |python_major| 3 | Major version of Python used|
-|python_minor|  | Minor version of Python used|
+|python_minor|  | Minor version of Python used.|
+
+**Note**: if this role is used with the role `ansible-django-webapp-prepare-host-role`,
+the python version specified here should be the default version for the OS of the host.
+This is due to the `ansible-django-webapp-prepare-host-role` installing the uWSGI plugins
+for the default `python3`.
 
 **uWSGI**
 

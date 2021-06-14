@@ -33,12 +33,6 @@
 
 # Using groups
 - block:
-  - name: Create root folder
-    file:
-      path: "{{ django_deployment_root_folder }}/{{ url }}"
-      state: directory
-      owner: root
-
   - name: Create project folders
     file:
       name: "{{ item }}"
@@ -46,6 +40,7 @@
       owner: "{{ django_deployment_user }}"
       mode: 0755
     with_items:
+      - "{{ django_deployment_root_folder }}/{{ url }}"
       - "{{ django_deployment_root_folder }}/{{ url }}/versions"
       - "{{ django_deployment_root_folder }}/{{ url }}/project"
 
