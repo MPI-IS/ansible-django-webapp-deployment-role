@@ -138,13 +138,21 @@ setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/logs
 setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/temporary
 setfacl -m u:{{ uwsgi_user }}:rwx -R $currentD/src/media
 setfacl -m u:{{ uwsgi_user }}:rx  -R $currentD/src/static
-
 {% if database=="sqlite3" %}
 chmod go-rwx $currentD/src/db.sqlite3
 setfacl -m u:{{ uwsgi_user }}:rwx $currentD/src/db.sqlite3
 {% endif %}
+
 {% else %}
 # Using groups
+chown :{{ uwsgi_user }} $currentD/src
+chown -R :{{ uwsgi_user }} $currentD/src/logs
+chown -R :{{ uwsgi_user }} $currentD/src/temporary
+chown -R :{{ uwsgi_user }} $currentD/src/temporary
+chown -R :{{ uwsgi_user }} $currentD/src/media
+{% if database=="sqlite3" %}
+chown -R :{{ uwsgi_user }} $currentD/src/db.sqlite3
+{% endif %}
 {% endif %}
 
 # compile all
