@@ -145,13 +145,17 @@ setfacl -m u:{{ uwsgi_user }}:rwx $currentD/src/db.sqlite3
 
 {% else %}
 # Using groups
-chown :{{ uwsgi_user }} $currentD/src
-chown -R :{{ uwsgi_user }} $currentD/src/logs
-chown -R :{{ uwsgi_user }} $currentD/src/temporary
-chown -R :{{ uwsgi_user }} $currentD/src/temporary
-chown -R :{{ uwsgi_user }} $currentD/src/media
+chown :{{ uwsgi_group }} $currentD/src
+chmod g+rwx $currentD/src
+chown -R :{{ uwsgi_group }} $currentD/src/logs
+chmod -R g+rwx $currentD/src/logs
+chown -R :{{ uwsgi_group }} $currentD/src/temporary
+chmod -R g+rwx $currentD/src/temporary
+chown -R :{{ uwsgi_group }} $currentD/src/media
+chmod -R g+rwx $currentD/src/media
 {% if database=="sqlite3" %}
-chown -R :{{ uwsgi_user }} $currentD/src/db.sqlite3
+chown -R :{{ uwsgi_group }} $currentD/src/db.sqlite3
+chmod g+rwx $currentD/src/db.sqlite3
 {% endif %}
 {% endif %}
 
