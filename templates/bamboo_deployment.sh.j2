@@ -53,7 +53,7 @@ echo "*********** creating the virtual environment for python3"
 {% if python_minor %}
 python{{ python_major }}.{{ python_minor }} -m venv --copies $currentD/venv
 {% else %}
-python{{ python_major }} -m venv $currentD/venv --copies $currentD/venv
+python{{ python_major }} -m venv --copies $currentD/venv
 {% endif %}
 
 
